@@ -1,0 +1,11 @@
+.asks, .bids{
+  width: 48%;
+}
+.trades{
+  width: 400px;
+  float: right;
+}
+div{
+  display: inline-block;
+  vertical-align: top;
+}

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html ng-app='login'>
+  <head>
+    <meta charset="utf-8">
+    <title>Login/Registration</title>
+    <link rel="stylesheet" href="/static/index.css" media="screen" title="no title">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-cookies.js"></script>
+    <script type="text/javascript">
+      var login = angular.module("login", ["ngCookies"]);
+
+      login.factory("loginManager", ["$http", "$q", "$timeout", function($http, $q, $timeout){
+        var factory={};
+        factory.tryRegister = function(register){
+          var deferred = $q.defer();
+          $timeout(function(){
+            deferred.notify("Contacting the login server is taking an unusually long time...");
+          },5000);
+          $http.post("/register", register).then(function(result){
+            if(result.data.success){
+              deferred.resolve(result.data);
+            } else {
+              deferred.reject(result.data.err);
+            }
+          }).catch(function(err){
+            deferred.reject(err);
+          });
+          return deferred.promise;
+        };
+        factory.tryLogin = function(login){
+          var deferred = $q.defer();
+          $timeout(function(){
+            deferred.notify("Contacting the login server is taking an unusually long time...");
+          },5000);
+          $http.post("/login", login).then(function(result){
+            if(result.data.success){
+              deferred.resolve(result.data);
+            } else {
+              deferred.reject(result.data.err);
+            }
+          }).catch(function(err){
+            deferred.reject(err);
+          });
+          return deferred.promise;
+        };
+      }]);
+
+      login.controller("loginController", ["$scope", "loginFactory", function($scope, loginFactory){
+        $scope.doRegister = function(){
+          loginFactory.tryRegister($scope.register).then(function(){
+            window.location = "/stocks";
+          }, function(err){
+            $scope.err = err;
+          }, function(notify){
+            $scope.notify = notify;
+          });
+        };
+        $scope.doLogin = function(){
+          loginFactory.tryRegister($scope.login).then(function(){
+            window.location = "/stocks";
+          }, function(err){
+            $scope.err = err;
+          }, function(notify){
+            $scope.notify = notify;
+          });
+        };
+      }]);
+    </script>
+  </head>
+  <body>
+    <h1>Welcome!</h1>
+    <br>
+    {{err.header}}
+    <ul>
+      <li ng-repeat="err.items"></li>
+    </ul>
+    <br>
+    <form class="" action="register" method="post">
+      <fieldset>
+        <legend>Register</legend>
+      Username: <input type="text" ng-model="register.username" value="">
+      <br>
+      Email: <input type="text" ng-model="register.email" value="">
+      <br>
+      Password: <input type="password" ng-model="register.password" value="">
+      <br>
+      Confirm Password: <input type="password" ng-model="register.passconf" value="">
+      <br>
+      <button type="button" ng-click="doRegister()">Register</button>
+      </fieldset>
+    </form>
+    <form class="" action="login" method="post">
+      <fieldset>
+        <legend>Login</legend>
+      Username: <input type="text" name="login.username" value="">
+      <br>
+      Password: <input type="password" name="login.password" value="">
+      <button type="button" ng-click="doLogin()">Log In</button>
+      </fieldset>
+    </form>
+  </body>
+</html>

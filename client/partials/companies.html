@@ -1,0 +1,146 @@
+<div ng-controller="mainController">
+  <h1>Market Data:</h1>
+  <table class="table table-striped table-bordered" at-table at-list="companyData" at-config="companyConfig" at-paginated>
+    <thead>
+    </thead>
+    <tbody>
+      <tr>
+        <td at-attribute="Symbol" at-sortable at-initial-sorting="asc">
+          <a href="#company/{{item.id}}/">${{item.symbol}}</a>
+        </td>
+        <td at-attribute="Name" at-sortable>
+          {{item.name}}
+        </td>
+        <td at-attribute="Bid" at-sortable>
+          {{item.bid}}
+        </td>
+        <td at-attribute="Ask" at-sortable>
+          {{item.ask}}
+        </td>
+        <td at-attribute="Last Trade" at-sortable>
+          {{item.last_trade}}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <at-pagination at-config="companyConfig" at-list="companyData"></at-pagination>
+  <div class="user portfolio">
+    <table class="table table-striped table-bordered" style="width:100%" at-table at-list="userData.portfolio" at-config="portfolioConfig" at-paginated>
+      <thead>
+        <h1>Your Portfolio:</h1>
+        <th>
+          Symbol
+        </th>
+        <th>
+          Name
+        </th>
+        <th>
+          Shares
+        </th>
+        <th>
+          Price Per Share
+        </th>
+        <th>
+          Total Value
+        </th>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            $CASH
+          </td>
+          <td>
+            Cash on hand
+          </td>
+          <td>
+            {{userData.cash}}
+          </td>
+          <td>
+            $1.00
+          </td>
+          <td>
+            {{userData.cash | currency}}
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <a href="company/{{item.company_id}}/">${{item.symbol}}</a>
+          </td>
+          <td>
+            {{companyData[item.symbol].name}}
+          </td>
+          <td>
+            {{item.shares}}
+          </td>
+          <td>
+            {{companyData[item.symbol].price | currency}}
+          </td>
+          <td>
+            {{(companyData[item.symbol].price * item.shares) | currency}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <at-pagination at-config="portfolioConfig" at-list="userData.portfolio"></at-pagination>
+  </div>
+  <div class="user orders">
+    <table class="table table-striped table-bordered" at-table at-list="userData.orders" at-config="orderConfig" at-paginated>
+      <thead>
+        <h1>Your Open Offers:</h1>
+        <th>
+          Symbol
+        </th>
+        <th>
+          Name
+        </th>
+        <th>
+          Type
+        </th>
+        <th>
+          Shares
+        </th>
+        <th>
+          Price Per Share
+        </th>
+        <th>
+          Total Cost
+        </th>
+        <th>
+          Placed On
+        </th>
+        <th>
+        </th>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <a href="company/{{item.company.id}}/">${{item.company.symbol}}</a>
+          </td>
+          <td>
+            {{item.company.name}}
+          </td>
+          <td ng-switch="item.buy_order">
+            <span ng-switch-if="true">Buy</span>
+            <span ng-switch-if="false">Sell</span>
+          </td>
+          <td>
+            {{item.shares}}
+          </td>
+          <td>
+            {{item.price | currency}}
+          </td>
+          <td>
+            {{item.shares*item.price | currency}}
+          </td>
+          <td>
+            {{item.created_at}}
+          </td>
+          <td>
+            <a href="/cancel/{{item.id}}">Cancel order</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <at-pagination at-config="orderConfig" at-list="userData.orders"></at-pagination>
+  </div>
+</div>

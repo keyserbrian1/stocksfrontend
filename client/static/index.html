@@ -9,19 +9,22 @@
     <script type="text/javascript">
       var login = angular.module("login", ["ngCookies"]);
 
-      login.factory("loginManager", ["$http", "$q", "$timeout", function($http, $q, $timeout){
+      login.factory("loginFactory", ["$http", "$q", "$timeout", function($http, $q, $timeout){
         var factory={};
         factory.tryRegister = function(register){
+          console.log("start register");
           var deferred = $q.defer();
           $timeout(function(){
             deferred.notify("Contacting the login server is taking an unusually long time...");
           },5000);
           $http.post("/register", register).then(function(result){
+            console.log(register);
             if(result.data.success){
               deferred.resolve(result.data);
             } else {
               deferred.reject(result.data.err);
             }
+            return null;
           }).catch(function(err){
             deferred.reject(err);
           });
@@ -38,41 +41,47 @@
             } else {
               deferred.reject(result.data.err);
             }
+            return null;
           }).catch(function(err){
             deferred.reject(err);
           });
           return deferred.promise;
         };
+        return factory;
       }]);
 
       login.controller("loginController", ["$scope", "loginFactory", function($scope, loginFactory){
         $scope.doRegister = function(){
+          console.log("doRegister");
           loginFactory.tryRegister($scope.register).then(function(){
-            window.location = "/stocks";
-          }, function(err){
-            $scope.err = err;
-          }, function(notify){
+            window.location = "/trading/";
+            return null;
+          }, null, function(notify){
             $scope.notify = notify;
+          }).catch(function(err){
+            $scope.err = err;
           });
         };
         $scope.doLogin = function(){
-          loginFactory.tryRegister($scope.login).then(function(){
-            window.location = "/stocks";
-          }, function(err){
-            $scope.err = err;
-          }, function(notify){
+          console.log($scope.login);
+          loginFactory.tryLogin($scope.login).then(function(){
+            window.location = "/trading/";
+            return null;
+          }, null, function(notify){
             $scope.notify = notify;
+          }).catch(function(err){
+            $scope.err = err;
           });
         };
       }]);
     </script>
   </head>
-  <body>
+  <body ng-controller="loginController">
     <h1>Welcome!</h1>
     <br>
     {{err.header}}
     <ul>
-      <li ng-repeat="err.items"></li>
+      <li ng-repeat="item in err.items">{{item}}</li>
     </ul>
     <br>
     <form class="" action="register" method="post">
@@ -92,9 +101,10 @@
     <form class="" action="login" method="post">
       <fieldset>
         <legend>Login</legend>
-      Username: <input type="text" name="login.username" value="">
+        {{login}}
+      Username: <input type="text" ng-model="login.username" value="">
       <br>
-      Password: <input type="password" name="login.password" value="">
+      Password: <input type="password" ng-model="login.password" value="">
       <button type="button" ng-click="doLogin()">Log In</button>
       </fieldset>
     </form>

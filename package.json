@@ -11,8 +11,12 @@
   "dependencies": {
     "angular": "^1.6.0",
     "angular-route": "^1.6.0",
+    "async-q": "^0.3.1",
+    "bcrypt": "^1.0.2",
     "body-parser": "^1.15.2",
+    "connect-pg-simple": "^3.1.2",
     "express": "^4.14.0",
+    "express-session": "^1.15.0",
     "mongoose": "^4.7.2",
     "q": "^1.4.1",
     "socket.io": "^1.7.2"

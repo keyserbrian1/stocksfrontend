@@ -9,24 +9,23 @@
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-cookies.js"></script>
   <script type ="text/javascript" src="/socket.io/socket.io.js"></script>
 
-  <link rel="stylesheet" href="/cdn/bootstrap/dist/css/bootstrap-min.css" media="screen" title="no title">
-  <script src="/cdn/at-table/dist/angular-table.min.js"></script>
+  <link rel="stylesheet" href="/cdn/bootstrap/dist/css/bootstrap.min.css" media="screen" title="no title">
+  <link rel="stylesheet" href="/static/company.css">
+  <script src="/cdn/at-table/dist/angular-table.js"></script>
 
 
 
   <script type="text/javascript">
   /* global io */
-  var stocks = angular.module("stocks", ["ngRoute", "ngCookies"]);
+  Object.values = Object.values || (obj => Object.keys(obj).map(key => obj[key]));//shim in Object.values
+  var stocks = angular.module("stocks", ["ngRoute", "ngCookies", "angular-table"]);
 
   stocks.config(function($routeProvider){
     $routeProvider
     .when("/", {
       templateUrl: "partials/companies.html"
     })
-    .when("/logout", {
-      templateUrl: "partials/logout.html"
-    })
-    .when("/:symbol", {
+    .when("/company/:symbol", {
       templateUrl: "partials/company.html"
     })
     .otherwise({
@@ -39,64 +38,126 @@
       getGlobalData: function(){
         return $http.get("/companyData");
       },
+      getCompanyData: function(company){
+        return $http.get("/companyData/"+company);
+      },
       getUserData: function(){
         return $http.get("/userData");
       },
       placeOrder: function(order){
         return $http.post("/order", order);
+      },
+      cancelOrder: function(id){
+        return $http.delete("/order/"+id);
       }
     };
     return factory;
   }]);
 
-  stocks.controller("outerController", ["$scope", "companyFactory", function($scope, companyFactory){
+  stocks.controller("outerController", ["$scope", "companyFactory", "$route", function($scope, companyFactory, $route){
+    $scope.companyData = {"DUM":{}};
+    $scope.identity = x=>x;
+    $scope.companyDataList = Object.values($scope.companyData);
+    $scope.userData = {portfolio:[], orders:[], cash:0};
+    $scope.cancelOrder = function(id){
+      companyFactory.cancelOrder(id).then(res=>{
+        if (res.data.err){
+          throw res.data.err;
+        }
+        $route.reload();
+        return null;
+      }).catch(err=>{
+        console.error("Order cancel failed",err);
+      });
+    };
     $scope.socket = io.connect();
     $scope.socket.on("globalUpdate", function(data){
-      $scope.companyData[data.response.symbol] = data.response.newCompanyData;
-      companyFactory.getUserData().then(function(data){
-        $scope.userData = data;
+      $scope.companyData[data.symbol] = data.newCompanyData;
+      $scope.companyDataList = Object.values($scope.companyData);
+      companyFactory.getUserData().then(function(res){
+        if (res.data.err){
+          throw res.data.err;
+        }
+        $scope.userData = res.data;
+        return null;
       }).catch(function(err){
-        console.err("User data failed",err);
+        console.error("User data failed",err);
       });
     });
     $scope.home = {};
-    companyFactory.getGlobalData().then(function(data){
-      $scope.companyData = data;
+    companyFactory.getGlobalData().then(function(res){
+      if (res.data.err){
+        throw res.data.err;
+      }
+      $scope.companyData = res.data;
+      $scope.companyDataList = Object.values(res.data);
+      return companyFactory.getUserData().then(function(res){
+        if (res.data.err){
+          throw res.data.err;
+        }
+        $scope.userData = res.data;
+        $scope.userData.portfolio.forEach(company=>{
+          company.price = parseFloat($scope.companyData[company.symbol].last_trade)||"N/A";
+          company.total = company.shares*company.price||"N/A";
+        });
+        $scope.userData.orders.forEach(order=>{
+          order.total = order.price*order.shares;
+        });
+        $scope.userData.portfolio.push({symbol:"CASH",name:"Cash On Hand",shares:$scope.userData.cash,price:1,total:$scope.userData.cash});
+        return null;
+      }).catch(function(err){
+        console.error("User data failed",err);
+      });
     }).catch(function(err){
-      console.err("Global data failed",err);
-    });
-    companyFactory.getUserData().then(function(data){
-      $scope.userData = data;
-    }).catch(function(err){
-      console.err("User data failed",err);
+      console.error("Global data failed",err);
     });
   }]);
   stocks.controller("mainController", ["$scope", function($scope){
     $scope.home.shouldDisplay = false;
-    $scope.socket.emit("main");
+    $scope.companyConfig = {
+      itemsPerPage: 10
+    };
     $scope.updateCompany = function(){/*do nothing, eat accidental call*/};
   }]);
-  stocks.controller("companyController", ["$scope", "$routeParams", "companyFactory", "$route", function($scope, $routeParams, companyFactory, $route){
+  stocks.controller("companyController", ["$scope", "$rootScope", "$routeParams", "companyFactory", "$route", "$filter", function($scope, $rootScope, $routeParams, companyFactory, $route, $filter){
     $scope.socket.on("companyUpdate", function(data){
-      $scope.updateCompany(data);
+      companyFactory.getUserData().then(res=>{
+        data.user = res.data;
+        $scope.updateCompany(data);
+        return null;
+      }).catch(console.error);
     });
+    $scope.home.shouldDisplay = true;
     $scope.symbol = $routeParams.symbol;
+    $scope.orders = [];
     $scope.socket.emit("company", $scope.symbol);
-    $scope.on("$routeChangeStart", function(){
+    $rootScope.$on("$routeChangeStart", function(){
       $scope.socket.off("companyUpdate");
+      $scope.socket.emit("leaveCompany", $scope.symbol);
     });
     $scope.data = false;
     $scope.socket.emit("company", $scope.symbol);
     $scope.updateCompany = function(data){
-      $scope.data = true;
+      $scope.data = "true";
       $scope.bids = data.bids;
       $scope.asks = data.asks;
-      $scope.userData.orders[$scope.symbol] = data.orders;
-      $scope.orders = $scope.userData.orders[$scope.symbol];
-      $scope.userData.portfolio[$scope.symbol] = data.portfolio;
-      $scope.portfolio = $scope.userData.portfolio[$scope.symbol];
+      $scope.userData = data.user;
+      $scope.userData.orders.forEach(order=>{
+        order.total = order.price*order.shares;
+      });
+      $scope.orders = $filter("filter")($scope.userData.orders, {symbol:$scope.symbol});
+      $scope.portfolio = $filter("filter")($scope.userData.portfolio, {symbol:$scope.symbol})[0]||{shares:0};
       $scope.updatePrices();
     };
+    companyFactory.getCompanyData($scope.symbol).then(res=>{
+      if (res.data.err){
+        throw res.data.err;
+      }
+      $scope.updateCompany(res.data);
+      return null;
+    }).catch(function(err){
+      console.error("User data failed",err);
+    });
     $scope.updatePrices = function updatePrices(){
       $scope.canPlaceOrder = true;
       var shares = $scope.shares;
@@ -115,26 +176,18 @@
       }
       var i = 0;
       $scope.total = 0;
-      var bids_prices = Object.keys($scope.bids);
-      bids_prices.sort(function(a, b) {
-        return b - a;
-      });
-      var asks_prices = Object.keys($scope.asks);
-      asks_prices.sort(function(a, b) {
-        return a - b;
-      });
       if ($scope.type===("buy")){
         while(shares){
-          if ($scope.price < asks_prices[i] || !asks_prices[i]){
+          if (!$scope.asks[i] || $scope.price < $scope.asks[i].price){
             $scope.total += shares*$scope.price;
             break;
           }
-          if (shares<$scope.asks[asks_prices[i]]){
-            $scope.total += asks_prices[i]*$scope.shares;
+          if (shares<$scope.asks[i].shares){
+            $scope.total += $scope.asks[i].price*$scope.shares;
             break;
           } else {
-            shares -= $scope.asks[asks_prices[i]];
-            $scope.total += $scope.asks[asks_prices[i]]*asks_prices[i];
+            shares -= $scope.asks[i].shares;
+            $scope.total += $scope.asks[i].shares*$scope.asks[i].price;
             i++;
           }
         }
@@ -143,56 +196,58 @@
           $scope.pricingNotice = "You don't have enough cash to complete this transaction.";
           return;
         }
-        if ($scope.price <= bids_prices[0] ) {
+        if ($scope.bids[0] && $scope.price <= $scope.bids[0].price ) {
           $scope.pricingNotice = "You are not the highest buy order. Your order will be completed after the higher buy orders complete or are cancelled.";
         } else {
           for (let order of $scope.orders){
-            if (!order.buy_order && order.price <= $scope.price){
-              $scope.pricingNotice = "You have a sell order that's greater in price than this buy order. Please cancel that order first.";
+            if (!order.buy_order && order.price >= $scope.price){
+              $scope.pricingNotice = "You have a sell order that's lower in price than this buy order. Please cancel that order first.";
               $scope.canPlaceOrder = false;
               $scope.total = "";
             }
           }
         }
-        if (!$scope.pricingNotice && $scope.price >= asks_prices[0]){
+        if ($scope.asks[0] && !$scope.pricingNotice && $scope.price >= $scope.asks[0].price){
           $scope.pricingNotice = "Your order is higher than some sell orders. You will first complete these orders, then, if there are any shares remaining in your order, you will place a buy order for the remainder.";
         }
       } else {
         while(shares){
-          if ($scope.price > bids_prices[i] || !bids_prices[i]){
+          if (!$scope.bids[i] || $scope.price > $scope.bids[i].price){
             $scope.total += shares*$scope.price;
             break;
           }
-          if (shares<$scope.bids[bids_prices[i]]){
-            $scope.total += bids_prices[i]*shares;
+          if (shares<$scope.bids[i].shares){
+            $scope.total += $scope.bids[i].price*shares;
             break;
           } else {
-            shares -= $scope.bids[bids_prices[i]];
-            $scope.total += $scope.bids[bids_prices[i]]*bids_prices[i];
+            shares -= $scope.bids[i].shares;
+            $scope.total += $scope.bids[i].shares*$scope.bids[i].price;
             i++;
           }
         }
-        if ($scope.price >= asks_prices[0] ) {
+        if ($scope.asks[0] && $scope.price >= $scope.asks[0].price ) {
           $scope.pricingNotice = "You are not the lowest sell order. Your order will be completed after the lower sell orders complete or are cancelled.";
         } else {
           for (let order of $scope.orders){
-            if (order.buy_order && order.price <= $scope.price){
-              $scope.pricingNotice = "You have a buy order that's lower in price than this sell order. Please cancel that order first.";
+            if (order.buy_order && order.price >= $scope.price){
+              $scope.pricingNotice = "You have a buy order that's higher in price than this sell order. Please cancel that order first.";
               $scope.canPlaceOrder = false;
               $scope.total = "";
             }
           }
         }
-        if (!$scope.pricingNotice && $scope.price <= bids_prices[0]){
+        if ($scope.bids[0] && !$scope.pricingNotice && $scope.price <= $scope.bids[0].price){
           $scope.pricingNotice = "Your order is lower than some buy orders. You will first complete these orders, then, if there are any shares remaining in your order, you will place a sell order for the remainder.";
         }
       }
     };
     $scope.placeOrder = function(){
-      companyFactory.placeOrder({symbol:$scope.symbol, shares:$scope.shares, price:$scope.price}).then(function(){
+      companyFactory.placeOrder({symbol:$scope.symbol, shares:$scope.shares, price:$scope.price, buy:$scope.type==="buy"}).then(function(res){
+        if (res.data.err) {throw res.data.err;}
         $route.reload();
+        return null;
       }).catch(function(err){
-        console.err("Error in placeOrder", err);
+        console.error("Error in placeOrder", err);
       });
     };
 
@@ -204,7 +259,7 @@
 
 <body ng-controller="outerController">
   <a href="#/" ng-if="home.shouldDisplay">Home</a>
-  <a href="#/logout">Log out</a>
+  <a href="/logout">Log out</a>
   <ng-view></ng-view>
 
 </body>

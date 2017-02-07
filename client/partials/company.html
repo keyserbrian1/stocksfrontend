@@ -1,122 +1,117 @@
-    <script type="text/javascript">
+<script type="text/javascript">
 
-    </script>
-  </head>
-  <body>
-    <a href="/trading">Home</a>
-    <a href="/logout">Log Out</a>
-    <div class="company">
-      <h1>{{company.name}}</h1>
-      <h3>Industries:</h3>
-        <h5 ng-repeat="for industry in industries">{{industry.parent.name}} &gt; {{industry.name}}</h5>
-      <br>
-        Place a new order:
-        Type: <select class="updatetotal" id="type" ng-model="type">
-          <option value="-----" selected disabled>-----</option>
-          <option value="buy">Buy</option>
-          <option value="sell">Sell</option>
-        </select>
-        Shares: <input id="shares" type="number" min="1" ng-model="shares" ng-change="updatePrices()" value="">
-        Price: $<input id="price" type="number" min="1" ng-model="price" ng-change="updatePrices()" value="">
-        Total: $<input id="total" type="number" ng-model="total" value="" disabled>
-        <br>
-        <span>{{pricingNotice}}</span>
-        <br>
-        <button ng-disabled="canPlaceOrder" ng-click="placeOrder()" value="Place Order">
-      <br>
-        <h3>Your open orders for this company:</h3>
-        <span class="orderswait" ng-if="!data">Retrieving data...</span>
-        <table class="table table-striped table-bordered" at-table at-list="orders" at-config="ordersConfig" at-paginated>
-          <thead>
-            <th>
-              Type
-            </th>
-            <th>
-              Shares
-            </th>
-            <th>
-              Price Per Share
-            </th>
-            <th>
-              Total Cost
-            </th>
-            <th>
-              Placed On
-            </th>
-            <th>
+</script>
+<div  ng-controller=companyController>
+  <div class="company">
+    <h1>{{company.name}}</h1>
+    <h3>Industries:</h3>
+    <h5 ng-repeat="industry in industries">{{industry.parent.name}} &gt; {{industry.name}}</h5>
+    <br>
+    Place a new order:
+    Type: <select class="updatetotal" id="type" ng-model="type" ng-change="updatePrices()">
+      <option value="buy">Buy</option>
+      <option value="sell">Sell</option>
+    </select>
+    Shares: <input id="shares" type="number" min="1" ng-model="shares" ng-change="updatePrices()" value="">
+    Price: $<input id="price" type="number" min="1" ng-model="price" ng-change="updatePrices()" value="">
+    Total: $<input id="total" type="number" ng-model="total" value="" disabled>
+    <br>
+    <span>{{pricingNotice}}</span>
+    <br>
+    <button ng-disabled="!canPlaceOrder" ng-click="placeOrder()" value="Place Order"> Place Order </button>
+    <br>
+    <h3>Your open orders for this company:</h3>
+    <span class="orderswait" ng-if="!data">Retrieving data...</span>
+    <table class="table table-striped table-bordered" at-table at-list="orders" at-config="ordersConfig" at-paginated>
+      <thead>
+        <th at-attribute=buy_order>
+          Type
+        </th>
+        <th at-attribute=shares>
+          Shares
+        </th>
+        <th at-attribute=price>
+          Price Per Share
+        </th>
+        <th at-attribute=total>
+          Total Cost
+        </th>
+        <th at-attribute=created_at>
+          Placed On
+        </th>
+        <th>
 
-            </th>
-          </thead>
-          <tbody id=ordersbody>
-            <tr>
-              <td ng-switch="item.buy_order">
-                <span ng-switch-if="true">Buy</span>
-                <span ng-switch-if="false">Sell</span>
-              </td>
-              <td>
-                {{item.shares}}
-              </td>
-              <td>
-                {{item.price | currency}}
-              </td>
-              <td>
-                {{item.shares*item.price | currency}}
-              </td>
-              <td>
-                {{item.created_at}}
-              </td>
-              <td>
-                <a href="/cancel/{{item.id}}">Cancel order</a>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <at-pagination at-config="ordersConfig" at-list="orders"></at-pagination>
-        <span class="ordersnone" ng-if="data&amp;&amp;!orders"><h3>You have no open orders for this company.</h3></span>
+        </th>
+      </thead>
+      <tbody id=ordersbody>
+        <tr>
+          <td at-attribute=buy_order>
+            <span ng-if="item.buy_order">Buy</span>
+            <span ng-if="!item.buy_order">Sell</span>
+          </td>
+          <td at-attribute=shares>
+            {{item.shares}}
+          </td>
+          <td at-attribute=price>
+            {{item.price | currency}}
+          </td>
+          <td at-attribute=total>
+            {{item.shares*item.price | currency}}
+          </td>
+          <td at-attribute=created_at>
+            {{item.created_at}}
+          </td>
+          <td at-title=Actions>
+            <a ng-click="cancelOrder(item.id)">Cancel order</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <at-pagination at-config="ordersConfig" at-list="orders"></at-pagination>
+    <span class="ordersnone" ng-if="data&amp;&amp;!orders.length"><h3>You have no open orders for this company.</h3></span>
+  </div>
+  <div class="trades">
+    <div class="bids">
+      <h1>Bids:</h1>
+      <table class="table table-striped table-bordered">
+        <thead>
+          <th>
+            Price
+          </th>
+          <th>
+            Shares
+          </th>
+        </thead>
+        <tbody id=bidsbody>
+          <span class="bidswait" ng-if="!data">Retrieving data...</span>
+          <span class="bidsnone" ng-if="!bids.length&amp;&amp;data">There are no open buy orders for this company.</span>
+          <tr ng-repeat="item in bids">
+            <td>{{item.price}}</td>
+            <td>{{item.shares}}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-    <div class="trades">
-      <div class="bids">
-        <h1>Bids:</h1>
-        <table>
-          <thead>
-            <th>
-              Price
-            </th>
-            <th>
-              Shares
-            </th>
-          </thead>
-          <tbody id=bidsbody>
-            <span class="bidswait" ng-if="!data">Retrieving data...</span>
-            <span class="bidsnone" ng-if="!bids&amp;&amp;data">There are no open buy orders for this company.</span>
-            <tr ng-repeat="Object.keys(bids)|orderBy:(x)=>x:true">
-              <td>{{item}}</td>
-              <td>{{bids[item]}}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="asks">
-        <h1>Asks:</h1>
-        <table>
-          <thead>
-            <th>
-              Price
-            </th>
-            <th>
-              Shares
-            </th>
-          </thead>
-          <tbody id=asksbody>
-            <span class="askswait" ng-if="!data">Retrieving data...</span>
-            <span class="asksnone" ng-if="!asks&amp;&amp;data">There are no open sell orders for this company.</span>
-            <tr ng-repeat="Object.keys(asks)|orderBy:(x)=>x">
-              <td>{{item}}</td>
-              <td>{{asks[item]}}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <div class="asks">
+      <h1>Asks:</h1>
+      <table class="table table-striped table-bordered">
+        <thead>
+          <th>
+            Price
+          </th>
+          <th>
+            Shares
+          </th>
+        </thead>
+        <tbody id=asksbody>
+          <span class="askswait" ng-if="!data">Retrieving data...</span>
+          <span class="asksnone" ng-if="!asks.length&amp;&amp;data">There are no open sell orders for this company.</span>
+          <tr ng-repeat="item in asks">
+            <td>{{item.price}}</td>
+            <td>{{item.shares}}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-  </body>
-</html>
+  </div>
+</div>

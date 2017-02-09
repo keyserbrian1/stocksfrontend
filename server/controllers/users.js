@@ -12,6 +12,7 @@ var db = pg({
 
 module.exports = {
   register: function(req, res){
+    console.log("start");
     var data = req.body;
     if (data.password !== data.passconf){
       res.json({success:false, err:{header:"Error in register:",items:["Password does not match confirmation"]}});
@@ -20,16 +21,17 @@ module.exports = {
     bcrypt.hash(data.password,15).then((pass)=>db.one("INSERT INTO users_user(email, username, password, cash, created_at, updated_at) VALUES($1,$2,$3,1000000, NOW(), NOW()) RETURNING id",[data.email, data.username, pass]))
     .then((user)=>{
       console.log("new user ",user);
-      req.session.user = user.id;
       return db.task(t=>{
-        return t.map("SELECT * FROM trading_company",(company=>{
+        return t.map("SELECT * FROM trading_company",null,(company=>{
           return t.any("INSERT INTO trading_stock(shares, created_at, updated_at, company_id, owner_id) VALUES (10, NOW(), NOW(), $1, $2)",[company.id, user.id]);
         })).then(t.batch);
       }).then(()=>{
+        req.session.user = user.id;
         res.json({success:true});
         return null;
       });
     }).catch((err)=>{
+      console.log("here");
       res.json({success:false, err:{header:"Error in register:",items:[err.message||err]}});
     });
   },

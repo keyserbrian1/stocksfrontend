@@ -1,2 +1,4 @@
 /node_modules/
 /bower_components/
+!/node_modules/utils.js
+!/node_modules/file_types.json

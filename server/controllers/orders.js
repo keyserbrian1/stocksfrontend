@@ -168,6 +168,10 @@ function getHistory(id, task){
   });
 }
 
+function getIndustries(id, task){
+  return (task?task:db).many("SELECT trading_industry.name AS name, parent.name AS parent FROM trading_company JOIN trading_company_industries on trading_company_industries.company_id = trading_company.id JOIN trading_industry ON trading_company_industries.industry_id = trading_industry.id JOIN trading_industry as parent ON trading_industry.parent_id = parent.id WHERE trading_company.id=$1",[id]);
+}
+
 function getUser(id, task){
   if (!task){
     return db.task(t=>{
@@ -254,19 +258,20 @@ module.exports = {
   getGlobalData:function(req, res){
     db.task(t=>{
       return t.map("SELECT * FROM trading_company",null,company=>{
-        return t.batch([getBids(company.id, t), getAsks(company.id, t), getHistory(company.id,t)]).then(data=>{
-          let [bids, asks, history] = data;
-          return [company, bids, asks, history];
+        return t.batch([getBids(company.id, t), getAsks(company.id, t), getHistory(company.id,t), getIndustries(company.id,t)]).then(data=>{
+          let [bids, asks, history, industries] = data;
+          return [company, bids, asks, history, industries];
         });
       }).then(t.batch);
     }).then(data=>{
       var companyData = {};
       for (let companyBlob of data){
-        let [company, bids, asks, history] = companyBlob;
+        let [company, bids, asks, history, industries] = companyBlob;
         companyData[company.symbol] = company;
         companyData[company.symbol].bid = bids[0]?bids[0].price:null;
         companyData[company.symbol].ask = asks[0]?asks[0].price:null;
         companyData[company.symbol].last_trade = history[0]?history[0].price:null;
+        companyData[company.symbol].industries = industries;
       }
       res.json(companyData);
       return null;

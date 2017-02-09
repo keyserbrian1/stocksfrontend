@@ -79,6 +79,10 @@
           throw res.data.err;
         }
         $scope.userData = res.data;
+        $scope.userData.orders.forEach(order=>{
+          order.total = order.price*order.shares;
+        });
+        $scope.userData.portfolio.push({symbol:"CASH",name:"Cash On Hand",shares:$scope.userData.cash,price:1,total:$scope.userData.cash});
         return null;
       }).catch(function(err){
         console.error("User data failed",err);
@@ -129,6 +133,8 @@
     });
     $scope.home.shouldDisplay = true;
     $scope.symbol = $routeParams.symbol;
+    $scope.industries=$scope.companyData[$scope.symbol].industries;
+    $scope.name = $scope.companyData[$scope.symbol].name;
     $scope.orders = [];
     $scope.socket.emit("company", $scope.symbol);
     $rootScope.$on("$routeChangeStart", function(){
@@ -145,6 +151,7 @@
       $scope.userData.orders.forEach(order=>{
         order.total = order.price*order.shares;
       });
+      $scope.userData.portfolio.push({symbol:"CASH",name:"Cash On Hand",shares:$scope.userData.cash,price:1,total:$scope.userData.cash});
       $scope.orders = $filter("filter")($scope.userData.orders, {symbol:$scope.symbol});
       $scope.portfolio = $filter("filter")($scope.userData.portfolio, {symbol:$scope.symbol})[0]||{shares:0};
       $scope.updatePrices();

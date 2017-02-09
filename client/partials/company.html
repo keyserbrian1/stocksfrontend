@@ -3,9 +3,9 @@
 </script>
 <div  ng-controller=companyController>
   <div class="company">
-    <h1>{{company.name}}</h1>
+    <h1>{{name}}</h1>
     <h3>Industries:</h3>
-    <h5 ng-repeat="industry in industries">{{industry.parent.name}} &gt; {{industry.name}}</h5>
+    <h5 ng-repeat="industry in industries"><span ng-if="industry.parent &amp;&amp; industry.parent !== 'Generic'">{{industry.parent}} &gt; {{industry.name}}</span><span ng-if="industry.name==='Consulting'">Consulting</span></h5>
     <br>
     Place a new order:
     Type: <select class="updatetotal" id="type" ng-model="type" ng-change="updatePrices()">

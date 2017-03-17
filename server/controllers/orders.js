@@ -77,7 +77,7 @@ function processSellOrder(order){
     if (user.shares < order.shares) {throw "Insufficient shares";}
     return db.tx((t)=>{
       var queries = [];
-      queries.push(t.any("UPDATE trading_stock SET shares = shares-${shares} WHERE owner_id=${owner}",order));
+      queries.push(t.any("UPDATE trading_stock SET shares = shares-${shares} WHERE owner_id=${owner} AND company_id=$company",order));
       for (let buy of buys){
         buy.price=parseFloat(buy.price);
         if (buy.shares > order.shares){
@@ -223,7 +223,7 @@ module.exports = {
     });
   },
   cancel:function(req,res){
-    db.one("SELECT owner_id, company_id FROM trading_order WHERE id=$1", [req.params.id]).then(order=>{
+    db.one("SELECT trading_order.owner_id AS owner_id, trading_order.company_id AS company_id, trading_company.symbol AS symbol FROM trading_order JOIN trading_company ON trading_company.id=trading_order.company_id WHERE id=$1", [req.params.id]).then(order=>{
       if (order.owner_id !== req.session.user){
         res.json({err:"Invalid order: not your order"});
         return null;

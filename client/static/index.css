@@ -24,6 +24,7 @@ div .ng-scope{
     border-color:#d2d2d2;
     border-width: 5px;
     box-shadow: 5px 2px 5px black;
+    margin-bottom: 10px;
 }
 #UserForm{
   font-size: 25px;

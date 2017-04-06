@@ -14,6 +14,7 @@ module.exports = function (app, ioPromise, db){
   stocks.setDB(db);
   app.post("/register", users.register);
   app.post("/login", users.login);
+  app.post("/guestlogin", users.guest);
   app.get("/logout",users.logout);
   app.post("/order", stocks.create);
   app.get("/companyData", stocks.getGlobalData);

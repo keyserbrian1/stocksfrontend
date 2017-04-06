@@ -51,6 +51,23 @@
       });
       return deferred.promise;
     };
+    factory.tryGuestLogin = function(){
+      var deferred = $q.defer();
+      $timeout(function(){
+        deferred.notify("Contacting the login server is taking an unusually long time...");
+      },5000);
+      $http.post("/guestlogin", {}).then(function(result){
+        if(result.data.success){
+          deferred.resolve(result.data);
+        } else {
+          deferred.reject(result.data.err);
+        }
+        return null;
+      }).catch(function(err){
+        deferred.reject(err);
+      });
+      return deferred.promise;
+    };
     return factory;
   }]);
 
@@ -77,81 +94,95 @@
         $scope.err = err;
       });
     };
+    $scope.doGuestLogin = function(){
+      loginFactory.tryGuestLogin().then(function(){
+        window.location = "/trading/";
+        return null;
+      }, null, function(notify){
+        $scope.notify = notify;
+      }).catch(function(err){
+        $scope.err = err;
+      });
+    };
   }]);
-  $('#animate1').click(function() {
+  $("#animate1").click(function() {
     $(this).addClass("slideUp");
   });
   </script>
 </head>
 <body ng-controller="loginController">
-<div id="indexPage">
-  <nav class="navbar navbar-inverse">
+  <div id="indexPage">
+    <nav class="navbar navbar-inverse">
+      <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Stocks</a>
+        </div>
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav">
+            <li><a href="#">About</a></li>
+            <li><a href="#">other</a></li>
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
     <div class="container-fluid">
-      <!-- Brand and toggle get grouped for better mobile display -->
-      <div class="navbar-header">
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-          <span class="sr-only">Toggle navigation</span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="#">Stocks</a>
-      </div>
-      <!-- Collect the nav links, forms, and other content for toggling -->
-      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-        <ul class="nav navbar-nav">
-          <li><a href="#">About</a></li>
-          <li><a href="#">other</a></li>
-        </ul>
-      </li>
-    </ul>
-  </div><!-- /.navbar-collapse -->
-</div><!-- /.container-fluid -->
-</nav>
-  <div class="container-fluid">
-    <h1 style="color:white">Welcome please Login or Register</h1>
-    <ul>
-      <li ng-repeat="item in err.items">{{item}}</li>
-    </ul>
-    <div class="row">
-      <div class="col-md-5">
-        <div id="Animate1" class="slideUp">
-        <div class="form-login">
-          <h4 id="User">Register</h4>
-            <input id="UserForm" type="text" ng-model="register.username" value="" class="form-control input-sm chat-input" placeholder="Username" />
-          </br>
-            <input id="UserForm" type="text" ng-model="register.email" value="" class="form-control input-sm chat-input" placeholder="Email" />
-          </br>
-            <input id="UserForm" type="password" ng-model="register.password" value="" class="form-control input-sm chat-input" placeholder="Password" />
-          </br>
-            <input id="UserForm" type="password" ng-model="register.passconf" value="" class="form-control input-sm chat-input" placeholder="Confirm Password" />
-          </br>
-          <div class="wrapper">
-            <span class="group-btn">
-              <button type="button" ng-click="doRegister()" class="btn btn-primary btn-md">Register <i class="fa fa-sign-in"></i></button>
-            </span>
-          </div>
+      <h1 style="color:white">Welcome please Login or Register</h1>
+      <ul>
+        <li ng-repeat="item in err.items">{{item}}</li>
+      </ul>
+      <div class="row">
+        <div class="col-md-5">
+          <div id="Animate1" class="slideUp">
+            <div class="form-login">
+              <h4 id="User">Register</h4>
+              <input id="UserForm" type="text" ng-model="register.username" value="" class="form-control input-sm chat-input" placeholder="Username" />
+              <br>
+              <input id="UserForm" type="text" ng-model="register.email" value="" class="form-control input-sm chat-input" placeholder="Email" />
+              <br>
+              <input id="UserForm" type="password" ng-model="register.password" value="" class="form-control input-sm chat-input" placeholder="Password" />
+              <br>
+              <input id="UserForm" type="password" ng-model="register.passconf" value="" class="form-control input-sm chat-input" placeholder="Confirm Password" />
+              <br>
+              <div class="wrapper">
+                <span class="group-btn">
+                  <button type="button" ng-click="doRegister()" class="btn btn-primary btn-md">Register <i class="fa fa-sign-in"></i></button>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="col-md-5 col-md-offset-2">
-        <div id="test" class="slideUp">
-        <div class="form-login">
-          <h4 id="User">Login</h4>
-          <input id="UserForm" type="text" class="form-control focusedInput" ng-model="login.username" value="" class="form-control input-sm chat-input" placeholder="Username" focus />
-          </br>
-          <input id="UserForm" type="password" ng-model="login.password" value="" class="form-control input-sm chat-input" placeholder="Password" />
-          </br>
-            <div class="wrapper">
-              <span class="group-btn">
-                <button type="button" ng-click="doLogin()" class="btn btn-primary btn-md">login <i class="fa fa-sign-in"></i></button>
-              </span>
+        <div class="col-md-5 col-md-offset-2">
+          <div id="test" class="slideUp">
+            <div class="form-login">
+              <h4 id="User">Login</h4>
+              <input id="UserForm" type="text" class="form-control focusedInput" ng-model="login.username" value="" class="form-control input-sm chat-input" placeholder="Username" focus />
+              <br>
+              <input id="UserForm" type="password" ng-model="login.password" value="" class="form-control input-sm chat-input" placeholder="Password" />
+              <br>
+              <div class="wrapper">
+                <span class="group-btn">
+                  <button type="button" ng-click="doLogin()" class="btn btn-primary btn-md">Login <i class="fa fa-sign-in"></i></button>
+                </span>
+              </div>
             </div>
+            <div class="form-login">
+              <h4 id="User">Guest Login:</h4>
+                <span class="group-btn">
+                  <button type="button" ng-click="doGuestLogin()" class="btn btn-primary btn-md">Guest <i class="fa fa-sign-in"></i></button>
+                </span>
             </div>
           </div>
         </div>
       </div>
     </div>
-</div>
+  </div>
 </body>
 </html>

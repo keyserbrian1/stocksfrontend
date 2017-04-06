@@ -169,7 +169,7 @@ function cancelOrder(id){
   }).then(()=>{
     return true;
   }).catch(err=>{
-    console.log(err);
+    console.error(err);
     return false;
   });
 }
@@ -253,7 +253,7 @@ module.exports = {
         res.json({err:err});
       });
     }).catch(err=>{
-      console.log(err);
+      console.error(err);
     });
   },
   createForBot:function(botString){
@@ -315,7 +315,7 @@ module.exports = {
               res.json({});
               return null;
             }).catch(err=>{
-              console.log(err);
+              console.error(err);
               res.json({err:err});
             });
           } else {
@@ -327,7 +327,7 @@ module.exports = {
         });
       }
     }).catch(err=>{
-      console.log(err);
+      console.error(err);
     });
   },
   getGlobalData:function(req, res){
@@ -351,10 +351,10 @@ module.exports = {
       res.json(companyData);
       return null;
     }).catch(err=>{
-      console.log(err);
+      console.error(err);
       res.json({err:err});
     }).catch(err=>{
-      console.log(err);
+      console.error(err);
     });
   },
   getCompanyData:function(req, res){
@@ -367,10 +367,10 @@ module.exports = {
         });
       });
     }).catch(err=>{
-      console.log(err);
+      console.error(err);
       res.json({err:err});
     }).catch(err=>{
-      console.log(err);
+      console.error(err);
     });
   },
   getUserData:function(req, res){
@@ -378,10 +378,10 @@ module.exports = {
       res.json({portfolio:data[0], orders:data[1], cash:data[2].cash});
       return null;
     }).catch(err=>{
-      console.log(err);
+      console.error(err);
       res.json({err:err});
     }).catch(err=>{
-      console.log(err);
+      console.error(err);
     });
   }
 };

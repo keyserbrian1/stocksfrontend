@@ -72,6 +72,7 @@
     };
     $scope.socket = io.connect();
     $scope.socket.on("globalUpdate", function(data){
+      console.log(data.newCompanyData);
       $scope.companyData[data.symbol] = data.newCompanyData;
       $scope.companyDataList = Object.values($scope.companyData);
       companyFactory.getUserData().then(function(res){

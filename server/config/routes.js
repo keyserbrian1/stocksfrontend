@@ -9,11 +9,12 @@ var users = require("../controllers/users.js");
 */
 
 module.exports = function (app, ioPromise, db){
+  users.setDB(db);
+  stocks.setIOPromise(ioPromise);
+  stocks.setDB(db);
   app.post("/register", users.register);
   app.post("/login", users.login);
   app.get("/logout",users.logout);
-  stocks.setIOPromise(ioPromise);
-  stocks.setDB(db);
   app.post("/order", stocks.create);
   app.get("/companyData", stocks.getGlobalData);
   app.get("/companyData/:company", stocks.getCompanyData);

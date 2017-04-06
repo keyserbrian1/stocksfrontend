@@ -4,6 +4,9 @@ var IO = null;
 var ioPromise=null;
 
 var queue = require("async-q").queue((order)=>{
+  if (order.botOrder){
+    return processBotOrder(order);
+  }
   if (order.cancelOrder){
     return cancelOrder(order.id);
   } else if (order.buy === true){
@@ -12,6 +15,36 @@ var queue = require("async-q").queue((order)=>{
     return processSellOrder(order);
   }
 }, 1);
+
+
+function processBotOrder(order){
+  return db.any("SELECT * FROM trading_order WHERE owner_id = ${owner} AND company_id = ${company} AND buy_order <> ${buy} AND open = true ORDER BY created_at ASC",order).then(oldOrders=>{
+    return db.tx(t=>{
+      var trans = [];
+      for (let old of oldOrders){
+        if (old.shares > order.shares){
+          old.shares -= order.shares;
+          trans.push(t.any("UPDATE trading_order SET shares=${shares} WHERE id=${id}",old));
+          order.shares = 0;
+          break;
+        } else {
+          order.shares -= old.shares;
+          trans.push(t.any("DELETE FROM trading_order WHERE id=$1",[old.id]));
+        }
+      }
+      return t.batch(trans);
+    }).then(()=>{
+      if (order.shares){
+        if (order.buy){
+          return processBuyOrder(order);
+        } else {
+          return processSellOrder(order);
+        }
+      }
+      return null;
+    });
+  });
+}
 
 function processBuyOrder(order){
   var shares = order.shares;
@@ -77,7 +110,7 @@ function processSellOrder(order){
     if (user.shares < order.shares) {throw "Insufficient shares";}
     return db.tx((t)=>{
       var queries = [];
-      queries.push(t.any("UPDATE trading_stock SET shares = shares-${shares} WHERE owner_id=${owner} AND company_id=$company",order));
+      queries.push(t.any("UPDATE trading_stock SET shares = shares-${shares} WHERE owner_id=${owner} AND company_id=${company}",order));
       for (let buy of buys){
         buy.price=parseFloat(buy.price);
         if (buy.shares > order.shares){
@@ -210,7 +243,8 @@ module.exports = {
         }).then((data)=>{
           var io = getIO();
           var [bids, asks, hist] = data;
-          io.emit("globalUpdate", {symbol:order.symbol, newCompanyData:{symbol:order.symbol, bid:bids[0], asks:asks[0], last_trade:hist[0], name:name}});
+          var [bid, ask, last] = [bids, asks, hist].map(x=>x.length?x[0].price:NaN);
+          io.emit("globalUpdate", {symbol:order.symbol, newCompanyData:{symbol:order.symbol, bid:bid, ask:ask, last_trade:last, name:name}});
           io.to(order.symbol).emit("companyUpdate", {bids:bids, asks:asks});
           res.json({});
           return null;
@@ -220,6 +254,46 @@ module.exports = {
       });
     }).catch(err=>{
       console.log(err);
+    });
+  },
+  createForBot:function(botString){
+    var [buyString, ...nums] = botString.split(" ");
+    var buy = (buyString==="Buy");
+    var [bot, symbol, shares, price] = nums;
+    if (!price){
+      return; //sometimes, there's a malformed order.
+    }
+    bot = parseFloat(bot);
+    shares = parseFloat(shares);
+    price = parseFloat(price);
+    var order = {
+      owner:bot,
+      symbol:symbol,
+      shares:shares,
+      price:price,
+      buy:buy,
+      botOrder:true
+    };
+    db.one("SELECT id, name FROM trading_company WHERE symbol=$1",[order.symbol]).then(val=>{
+      var id = val.id;
+      var name = val.name;
+      order.company=id;
+      return queue.push(order).then(()=>{
+        return db.task((t)=>{
+          return t.batch([getBids(id, t), getAsks(id, t), getHistory(id, t)]);
+        }).then((data)=>{
+          var io = getIO();
+          var [bids, asks, hist] = data;
+          var [bid, ask, last] = [bids, asks, hist].map(x=>x.length?x[0].price:NaN);
+          io.emit("globalUpdate", {symbol:order.symbol, newCompanyData:{symbol:order.symbol, bid:bid, ask:ask, last_trade:last, name:name}});
+          io.to(order.symbol).emit("companyUpdate", {bids:bids, asks:asks});
+          return null;
+        });
+      }).catch(err=>{
+        console.error(err);
+      });
+    }).catch(err=>{
+      console.error(err);
     });
   },
   cancel:function(req,res){
@@ -235,7 +309,8 @@ module.exports = {
             }).then((data)=>{
               var io = getIO();
               var [bids, asks, hist, name] = data;
-              io.emit("globalUpdate", {symbol:order.symbol, newCompanyData:{symbol:order.symbol, bid:bids[0], asks:asks[0], last_trade:hist[0], name:name}});
+              var [bid, ask, last] = [bids, asks, hist].map(x=>x.length?x[0].price:NaN);
+              io.emit("globalUpdate", {symbol:order.symbol, newCompanyData:{symbol:order.symbol, bid:bid, ask:ask, last_trade:last, name:name}});
               io.to(order.symbol).emit("companyUpdate", {bids:bids, asks:asks});
               res.json({});
               return null;

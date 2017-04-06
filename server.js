@@ -78,3 +78,24 @@ io.on("connection", function(socket){
   });
 });
 ioDelayed.resolve(io);
+
+//once everything else is set up, launch the bots.
+
+var cp = require("child_process");
+var ordersCtrl = require("./server/controllers/orders.js");
+var bots = cp.spawn("python",["-u","../stocks/manage.py","launchbots"]);
+var error = false;
+bots.stdout.on("data", function (data) {
+  data = data.toString();
+  if (!error){
+    ordersCtrl.createForBot(data);
+    console.log("Bot order:"+data);
+  }
+});
+
+bots.stderr.on("data", function (data) {
+  if (!error){console.error("Python bot error: ");}
+  console.error(data.toString());
+  setTimeout(()=>process.exit(-1),1000);
+  error = true;
+});

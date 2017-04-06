@@ -1,137 +1,148 @@
 <div ng-controller="mainController">
-  <h1>Market Data:</h1>
-  <table class="table table-striped table-bordered" at-table at-list="companyDataList" at-config="companyConfig" at-paginated>
-    <thead>
-    </thead>
-    <tbody>
-      <tr>
-        <td at-attribute="symbol" at-sortable at-initial-sorting="asc">
-          <a href="#company/{{item.symbol}}/">${{item.symbol}}</a>
-        </td>
-        <td at-attribute="name" at-sortable>
-          {{item.name}}
-        </td>
-        <td at-attribute="bid" at-sortable>
-          <span ng-if="item.bid">{{item.bid|currency}}</span>
-          <span ng-if="!item.bid">None</span>
-        </td>
-        <td at-attribute="ask" at-sortable>
-          <span ng-if="item.ask">{{item.ask|currency}}</span>
-          <span ng-if="!item.ask">None</span>
-        </td>
-        <td at-attribute="last_trade" at-sortable>
-          <span ng-if="item.last_trade">{{item.last_trade|currency}}</span>
-          <span ng-if="!item.last_trade">None</span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <at-pagination at-config="companyConfig" at-list="companyDataList"></at-pagination>
-  <br>
-  <div class="user portfolio">
-    <h1>Your Portfolio:</h1>
-    <table class="table table-striped table-bordered" style="width:100%" at-table at-list="userData.portfolio" at-config="portfolioConfig" at-paginated>
+  <div id="companyWrapper">
+    <br>
+    <div class="row">
+    <div class="col-md-6">
+      <h1>Market Data</h1>
+    <table class="table table-striped table-bordered" at-table at-list="companyDataList" at-config="companyConfig" at-paginated>
       <thead>
-        <th>
-          Symbol
-        </th>
-        <th>
-          Name
-        </th>
-        <th>
-          Shares
-        </th>
-        <th>
-          Price Per Share
-        </th>
-        <th>
-          Total Value
-        </th>
       </thead>
       <tbody>
         <tr>
-          <td at-attribute="symbol" at-sortable>
-            <a href="#company/{{item.symbol}}/" ng-if="item.symbol!=='CASH'">${{item.symbol}}</a>
-            <span ng-if="item.symbol==='CASH'">CASH</span>
-          </td>
-          <td at-attribute="name" at-sortable>
-            {{item.name}}
-          </td>
-          <td at-attribute="shares" at-sortable>
-            {{item.shares}}
-          </td>
-          <td at-attribute="price" at-sortable>
-            <span ng-if="item.price">{{item.price|currency}}</span>
-            <span ng-if="!item.price">N/A</span>
-          </td>
-          <td at-attribute="total" at-sortable>
-            <span ng-if="item.total">{{item.total|currency}}</span>
-            <span ng-if="!item.total">N/A</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <at-pagination at-config="portfolioConfig" at-list="userData.portfolio"></at-pagination>
-  </div>
-  <div class="user orders">
-    <table class="table table-striped table-bordered" at-table at-list="userData.orders" at-config="orderConfig" at-paginated>
-      <thead>
-        <h1>Your Open Offers:</h1>
-        <th at-attribute="symbol">
-          Symbol
-        </th>
-        <th at-attribute="name">
-          Name
-        </th>
-        <th at-attribute="buy_order">
-          Type
-        </th>
-        <th at-attribute="shares">
-          Shares
-        </th>
-        <th at-attribute="price">
-          Price Per Share
-        </th>
-        <th at-attribute="total">
-          Total Cost
-        </th>
-        <th at-attribute="created_at">
-          Placed On
-        </th>
-        <th>
-          Actions
-        </th>
-      </thead>
-      <tbody>
-        <tr>
-          <td at-attribute="symbol" at-sortable>
+          <td at-attribute="symbol" at-sortable at-initial-sorting="asc">
             <a href="#company/{{item.symbol}}/">${{item.symbol}}</a>
           </td>
           <td at-attribute="name" at-sortable>
             {{item.name}}
           </td>
-          <td at-attribute="buy_order" at-sortable>
-            <span ng-if="item.buy_order">Buy</span>
-            <span ng-if="!item.buy_order">Sell</span>
+          <td at-attribute="bid" at-sortable>
+            <span ng-if="item.bid">{{item.bid|currency}}</span>
+            <span ng-if="!item.bid">None</span>
           </td>
-          <td at-attribute="shares" at-sortable>
-            {{item.shares}}
+          <td at-attribute="ask" at-sortable>
+            <span ng-if="item.ask">{{item.ask|currency}}</span>
+            <span ng-if="!item.ask">None</span>
           </td>
-          <td at-attribute="price" at-sortable>
-            {{item.price | currency}}
-          </td>
-          <td at-attribute="total" at-sortable>
-            {{item.total | currency}}
-          </td>
-          <td at-attribute="created_at" at-sortable>
-            {{item.created_at}}
-          </td>
-          <td at-title="actions">
-            <a ng-click="cancelOrder(item.id)">Cancel order</a>
+          <td at-attribute="last_trade" at-sortable>
+            <span ng-if="item.last_trade">{{item.last_trade|currency}}</span>
+            <span ng-if="!item.last_trade">None</span>
           </td>
         </tr>
       </tbody>
     </table>
-    <at-pagination at-config="orderConfig" at-list="userData.orders"></at-pagination>
+    <at-pagination at-config="companyConfig" at-list="companyDataList"></at-pagination>
   </div>
+  <div class="col-md-6">
+    <div class="user portfolio">
+      <h1>Your Portfolio</h1>
+      <table class="table table-striped table-bordered" style="width:100%" at-table at-list="userData.portfolio" at-config="portfolioConfig" at-paginated>
+        <thead>
+          <th>
+            Symbol
+          </th>
+          <th>
+            Name
+          </th>
+          <th>
+            Shares
+          </th>
+          <th>
+            Price Per Share
+          </th>
+          <th>
+            Total Value
+          </th>
+        </thead>
+        <tbody>
+          <tr>
+            <td at-attribute="symbol" at-sortable>
+              <a href="#company/{{item.symbol}}/" ng-if="item.symbol!=='CASH'">${{item.symbol}}</a>
+              <span ng-if="item.symbol==='CASH'">CASH</span>
+            </td>
+            <td at-attribute="name" at-sortable>
+              {{item.name}}
+            </td>
+            <td at-attribute="shares" at-sortable>
+              {{item.shares}}
+            </td>
+            <td at-attribute="price" at-sortable>
+              <span ng-if="item.price &amp;&amp; item.price!=='N/A'">{{item.price|currency}}</span>
+              <span ng-if="!item.price || item.price==='N/A'">N/A</span>
+            </td>
+            <td at-attribute="total" at-sortable>
+              <span ng-if="item.total &amp;&amp; item.total!=='N/A'">{{item.total|currency}}</span>
+              <span ng-if="!item.total || item.total==='N/A'">N/A</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <at-pagination at-list="userData.portfolio" at-config="portfolioConfig"></at-pagination>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-5-offset-4">
+    <div class="user orders">
+      <table id="bottomTable" class="table table-striped table-bordered" at-table at-list="userData.orders" at-config="orderConfig" at-paginated>
+        <thead>
+          <h1>Your Open Offers</h1>
+          <th at-attribute="symbol">
+            Symbol
+          </th>
+          <th at-attribute="name">
+            Name
+          </th>
+          <th at-attribute="buy_order">
+            Type
+          </th>
+          <th at-attribute="shares">
+            Shares
+          </th>
+          <th at-attribute="price">
+            Price Per Share
+          </th>
+          <th at-attribute="total">
+            Total Cost
+          </th>
+          <th at-attribute="created_at">
+            Placed On
+          </th>
+          <th>
+            Actions
+          </th>
+        </thead>
+        <tbody>
+          <tr>
+            <td at-attribute="symbol" at-sortable>
+              <a href="#company/{{item.symbol}}/">${{item.symbol}}</a>
+            </td>
+            <td at-attribute="name" at-sortable>
+              {{item.name}}
+            </td>
+            <td at-attribute="buy_order" at-sortable>
+              <span ng-if="item.buy_order">Buy</span>
+              <span ng-if="!item.buy_order">Sell</span>
+            </td>
+            <td at-attribute="shares" at-sortable>
+              {{item.shares}}
+            </td>
+            <td at-attribute="price" at-sortable>
+              {{item.price | currency}}
+            </td>
+            <td at-attribute="total" at-sortable>
+              {{item.total | currency}}
+            </td>
+            <td at-attribute="created_at" at-sortable>
+              {{item.created_at}}
+            </td>
+            <td at-title="actions">
+              <a ng-click="cancelOrder(item.id)">Cancel order</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <at-pagination at-config="orderConfig" at-list="userData.orders"></at-pagination>
+    </div>
+  </div>
+</div>
 </div>

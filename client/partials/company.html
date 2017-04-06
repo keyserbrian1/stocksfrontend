@@ -4,10 +4,10 @@
 <div  ng-controller=companyController>
   <div class="company">
     <h1>{{name}}</h1>
-    <h3>Industries:</h3>
+    <h3>Industries</h3>
     <h5 ng-repeat="industry in industries"><span ng-if="industry.parent &amp;&amp; industry.parent !== 'Generic'">{{industry.parent}} &gt; {{industry.name}}</span><span ng-if="industry.name==='Consulting'">Consulting</span></h5>
     <br>
-    Place a new order:
+    Place a new order
     Type: <select class="updatetotal" id="type" ng-model="type" ng-change="updatePrices()">
       <option value="buy">Buy</option>
       <option value="sell">Sell</option>
@@ -20,7 +20,7 @@
     <br>
     <button ng-disabled="!canPlaceOrder" ng-click="placeOrder()" value="Place Order"> Place Order </button>
     <br>
-    <h3>Your open orders for this company:</h3>
+    <h3>Your open orders for this company</h3>
     <span class="orderswait" ng-if="!data">Retrieving data...</span>
     <table class="table table-striped table-bordered" at-table at-list="orders" at-config="ordersConfig" at-paginated>
       <thead>
@@ -93,7 +93,7 @@
       </table>
     </div>
     <div class="asks">
-      <h1>Asks:</h1>
+      <h1>Asks</h1>
       <table class="table table-striped table-bordered">
         <thead>
           <th>

@@ -1,5 +1,63 @@
-form{
-  width: 700px;
-  display: inline-block;
-  vertical-align: top;
+.container {
+  background-color: red;
+}
+.input-sm{
+  font-size: 52px;
+}
+#indexPage h1{
+  font-size: 50px;
+}
+
+div .ng-scope{
+    width: 100%;
+     display: block;
+    vertical-align: top;
+}
+
+.form-login {
+    background-color: #828081;
+    padding-top: 10px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-radius: 15px;
+    border-color:#d2d2d2;
+    border-width: 5px;
+    box-shadow: 5px 2px 5px black;
+}
+#UserForm{
+  font-size: 25px;
+}
+h4 {
+ border:0 solid #fff;
+ border-bottom-width:1px;
+ padding-bottom:10px;
+ text-align: center;
+}
+
+.form-control {
+    border-radius: 10px;
+    font-size: 22px;
+}
+
+.wrapper {
+    text-align: center;
+}
+#indexPage{
+  text-align: center;
+  background-image: url('https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcRBilDZfDV3e7vpY60ViT4C0eNZQXU3YpSaGQE7qv2PEUitOrHZ');
+  background-size:cover;
+  height: 90em;
+}
+#indexPage .row{
+  margin-top: 10em;
+}
+#User{
+  font-size:30px
+}
+
+@media all and (max-width: 480px) {
+  .col-md-4{
+    margin-top: 10%;
+  }
 }

@@ -1,11 +1,13 @@
-.asks, .bids{
-  width: 48%;
+.navbar-inverse {
+  background-color: #353535;
+  color: white;
 }
-.trades{
-  width: 400px;
-  float: right;
+
+
+#companyWrapper{
+  text-align: center;
 }
-div{
-  display: inline-block;
-  vertical-align: top;
+th{
+  background-color: #585858;
+  color:white;
 }
